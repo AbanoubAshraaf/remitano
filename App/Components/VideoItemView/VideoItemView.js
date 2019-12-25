@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
   },
-  toolbarText: {color: '#ffffff', fontWeight: 'bold', flex: 1},
+  toolbarText: {color: Assets.Colors.white, fontWeight: 'bold', flex: 1},
   toolbarContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   shareICon: {
-    tintColor: '#ffffff',
+    tintColor: Assets.Colors.white,
   },
 });
 export default VideoItemView;
