@@ -1,130 +1,169 @@
-import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View} from 'react-native';
-import Video from 'react-native-video';
-import MediaControls, {PLAYER_STATES} from 'react-native-media-controls';
+import React, {useEffect, useState} from 'react';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Text,
+  Image,
+  FlatList,
+  ActivityIndicator,
+  AsyncStorage,
+} from 'react-native';
 
-class App extends Component {
-  videoPlayer;
+import Assets, {Width, Height} from '../../Assets/Assets';
+import {readData} from '../../FirebaseHelper/firebaseHelper';
+import VideoItemView from '../../Components/VideoItemView';
+import {ScrollView} from 'react-native-gesture-handler';
+import Share, {ShareSheet, Button} from 'react-native-share';
+import ShareView from '../../Components/ShareView';
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      currentTime: 0,
-      duration: 0,
-      isFullScreen: false,
-      isLoading: true,
-      paused: false,
-      playerState: PLAYER_STATES.PLAYING,
-      screenType: 'content',
-    };
-  }
+const Home = props => {
+  let [data, setData] = useState();
+  let [itemUrl, setItemUrl] = useState();
+  let [selectedItem, setSelectedItem] = useState();
+  let [userName, setUserName] = useState();
+  let [navigate, setNavigate] = useState(false);
 
-  onSeek = seek => {
-    this.videoPlayer.seek(seek);
-  };
+  let [error, setError] = useState();
 
-  onPaused = playerState => {
-    this.setState({
-      paused: !this.state.paused,
-      playerState,
-    });
-  };
-
-  onReplay = () => {
-    //Handler for Replay
-    this.setState({playerState: PLAYER_STATES.PLAYING});
-    this.videoPlayer.seek(0);
-  };
-
-  onProgress = data => {
-    const {isLoading, playerState} = this.state;
-    // Video Player will continue progress even if the video already ended
-    if (!isLoading && playerState !== PLAYER_STATES.ENDED) {
-      this.setState({currentTime: data.currentTime});
+  useEffect(() => {
+    readData(setData, setError, 'Videos');
+  }, []);
+  useEffect(() => {
+    retrieveData();
+    if (data) {
+      setSelectedItem(data[0]);
     }
+  }, [data]);
+  const retrieveData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('email');
+      if (value !== null) {
+        console.log(value);
+        setUserName(value);
+      }
+    } catch (error) {}
   };
-
-  onLoad = data => this.setState({duration: data.duration, isLoading: false});
-
-  onLoadStart = data => this.setState({isLoading: true});
-
-  onEnd = () => this.setState({playerState: PLAYER_STATES.ENDED});
-
-  onError = () => alert('Oh! ', error);
-
-  exitFullScreen = () => {
-    alert('Exit full screen');
-  };
-
-  enterFullScreen = () => {};
-
-  onFullScreen = () => {
-    if (this.state.screenType == 'content') {
-      this.setState({screenType: 'cover'});
-    } else {
-      this.setState({screenType: 'content'});
-    }
-  };
-  renderToolbar = () => (
-    <View>
-      <Text> toolbar </Text>
-    </View>
-  );
-  onSeeking = currentTime => this.setState({currentTime});
-
-  render() {
+  let renderItem = item => {
     return (
-      <View style={styles.container}>
-        <Video
-          onEnd={this.onEnd}
-          onLoad={this.onLoad}
-          onLoadStart={this.onLoadStart}
-          onProgress={this.onProgress}
-          paused={this.state.paused}
-          ref={videoPlayer => (this.videoPlayer = videoPlayer)}
-          resizeMode={this.state.screenType}
-          onFullScreen={this.state.isFullScreen}
-          source={{
-            uri:
-              'https://r3---sn-4g5ednsy.googlevideo.com/videoplayback?expire=1577223502&ei=7jACXu6dE5j7kgbIy6eoDw&ip=2604%3A180%3A3%3A376%3A1041%3Ab55%3Adb8f%3A33bd&id=o-AGfHstoHjvZH-bt4R3bi8rX3SMXi6bz-X4MUG50busTT&itag=43&source=youtube&requiressl=yes&mime=video%2Fwebm&gir=yes&clen=4661256&ratebypass=yes&dur=0.000&lmt=1462969264548371&fvip=3&fexp=23842630&c=WEB&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cmime%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=ALgxI2wwRAIgUjg_a_MFPRQ3LsgE1sXy0z0BontFw5qiPuWrLAhZ6PQCIFPc5TmI9ZZRH8c6g6-_5ZejAMSbh-tImt3YdV_YS_8x&redirect_counter=1&cm2rm=sn-n4vle7s&req_id=fb460c6ae945a3ee&cms_redirect=yes&mip=41.44.48.176&mm=34&mn=sn-4g5ednsy&ms=ltu&mt=1577201908&mv=m&mvi=2&pl=20&lsparams=mip,mm,mn,ms,mv,mvi,pl&lsig=AHylml4wRQIhAKKLCib-8QUUBIspERqQ4iH0O0dKBcTAbZr5OHEk5NfQAiAf6g6Z6QP4Y3S9BzUygFpyPQ5sfrQQh0Dwd9NAs4jVGw==',
-          }}
-          style={styles.mediaPlayer}
-          volume={10}
-        />
-        <MediaControls
-          duration={this.state.duration}
-          isLoading={this.state.isLoading}
-          mainColor="#333"
-          onFullScreen={this.onFullScreen}
-          onPaused={this.onPaused}
-          onReplay={this.onReplay}
-          onSeek={this.onSeek}
-          onSeeking={this.onSeeking}
-          playerState={this.state.playerState}
-          progress={this.state.currentTime}
-          toolbar={this.renderToolbar()}
-        />
-      </View>
+      <>
+        <TouchableOpacity
+          onPress={() => {
+            setSelectedItem(item);
+          }}>
+          <VideoItemView
+            item={item}
+            setItemUrl={setItemUrl}
+            containScreen={true}
+            setSelectedItem={setSelectedItem}
+          />
+        </TouchableOpacity>
+      </>
     );
-  }
-}
+  };
+
+  const LoginState = () => {
+    return userName ? (
+      <Text style={styles.userNameText}>  {userName}</Text>
+    ) : (
+      <TouchableOpacity
+        style={styles.loginTextContainer}
+        onPress={() => {
+          setNavigate(true);
+          props.navigation.navigate('LoginSignup');
+        }}>
+        <Text style={styles.loginText}> Login -></Text>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <>
+      <View style={styles.container}>
+        {LoginState()}
+        {data ? (
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {selectedItem && (
+              <VideoItemView
+                item={selectedItem}
+                setItemUrl={setItemUrl}
+                fullScreen={true}
+                navigate={navigate}
+              />
+            )}
+            <FlatList
+              data={data}
+              showsVerticalScrollIndicator={false}
+              renderItem={({item}) => renderItem(item)}
+            />
+          </ScrollView>
+        ) : (
+          <View style={styles.indicator}>
+            {!error ? (
+              <ActivityIndicator color={Assets.Colors.babyblue} size="large" />
+            ) : (
+              <Text>{error}</Text>
+            )}
+          </View>
+        )}
+        <ShareView url={itemUrl} setItemUrl={setItemUrl} />
+      </View>
+    </>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'transparent',
-    width: '90%',
-    height: 250,
+    flex: 1,
+    width: Assets.calcWidth(99),
+    alignSelf: 'center',
+    marginTop: 5,
+  },
+  userNameText: {
+    alignSelf: 'flex-end',
+    marginRight: 5,
+    color: Assets.Colors.remitanoMainColor,
+    marginBottom:5
+  },
+  loginTextContainer: {
+    backgroundColor: Assets.Colors.remitanoMainColor,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    color: Assets.Colors.white,
+    fontSize: 18,
+    width: '20%',
+    alignSelf: 'flex-end',
+  },
+  loginText: {
+    color: Assets.Colors.white,
+  },
+  title: {
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  itemContainer: {
+    flex: 1,
+    borderWidth: 0.5,
+    borderColor: Assets.Colors.brownGrey,
+    margin: 10,
     borderRadius: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  toolbar: {
-    marginTop: 30,
-    backgroundColor: 'transparent',
-    padding: 10,
-    borderRadius: 5,
+  image: {
+    height: 150,
+    width: '100%',
+    borderRadius: 20,
+    resizeMode: 'stretch',
   },
-  mediaPlayer: {
-    backgroundColor: 'transparent',
-    width: '90%',
-    height: 250,
+  indicator: {
+    width: Width,
+    height: Height,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
   },
 });
-export default App;
+
+export default Home;

@@ -44,6 +44,7 @@ const Assets = {
     gray32: '#525252',
     gray59: '#969696',
     headlineDeepBlue: '#615195',
+    remitanoMainColor: '#713B87',
 
     // Primary Colors
     orangePink: '#ff6c58',
@@ -59,16 +60,18 @@ const Assets = {
 
     // Other Colors
     white: '#fff',
-    black: '000',
+    black: '#000',
     red: '#990000',
   },
 
   requires: {
     drawer: require('./images/drawer.png'),
     back: require('./images/Back.png'),
+    share: require('./images/share.png'),
+    facebook: require('./images/facebook.png'),
+    google: require('./images/google.png'),
+    twitter: require('./images/twitter.png'),
   },
-
-
 };
 
-export {Assets};
+export default Assets;
