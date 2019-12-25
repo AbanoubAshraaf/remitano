@@ -9,24 +9,42 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import {Assets, Width, Height} from '../../Assets/Assets';
+import Assets, {Width, Height} from '../../Assets/Assets';
 import {readData} from '../../FirebaseHelper/firebaseHelper';
 import VideoItemView from '../../Components/VideoItemView';
 import {ScrollView} from 'react-native-gesture-handler';
+import Share, {ShareSheet, Button} from 'react-native-share';
+import ShareView from '../../Components/ShareView';
 
 const Home = props => {
   let [data, setData] = useState();
+  let [itemUrl, setItemUrl] = useState();
+  let [selectedItem, setSelectedItem] = useState();
+
   let [error, setError] = useState();
 
   useEffect(() => {
     readData(setData, setError, 'Videos');
   }, []);
+  useEffect(() => {
+    if (data) {
+      setSelectedItem(data[0]);
+    }
+  }, [data]);
 
   let renderItem = item => {
     return (
       <>
-        <TouchableOpacity>
-          <VideoItemView item={item} />
+        <TouchableOpacity
+          onPress={() => {
+            setSelectedItem(item);
+          }}>
+          <VideoItemView
+            item={item}
+            setItemUrl={setItemUrl}
+            containScreen={true}
+            setSelectedItem={setSelectedItem}
+          />
         </TouchableOpacity>
       </>
     );
@@ -36,6 +54,13 @@ const Home = props => {
       <View style={styles.container}>
         {data ? (
           <ScrollView showsVerticalScrollIndicator={false}>
+            {selectedItem && (
+              <VideoItemView
+                item={selectedItem}
+                setItemUrl={setItemUrl}
+                fullScreen={true}
+              />
+            )}
             <FlatList
               data={data}
               showsVerticalScrollIndicator={false}
@@ -51,6 +76,7 @@ const Home = props => {
             )}
           </View>
         )}
+        <ShareView url={itemUrl} setItemUrl={setItemUrl} />
       </View>
     </>
   );
@@ -59,7 +85,7 @@ const Home = props => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: Assets.calcWidth(90),
+    width: Assets.calcWidth(99),
     alignSelf: 'center',
     marginTop: 10,
   },

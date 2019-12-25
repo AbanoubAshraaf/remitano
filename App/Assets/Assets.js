@@ -66,9 +66,12 @@ const Assets = {
   requires: {
     drawer: require('./images/drawer.png'),
     back: require('./images/Back.png'),
+    share: require('./images/share.png'),
+    facebook: require('./images/facebook.png'),
+    google: require('./images/google.png'),
+    twitter: require('./images/twitter.png'),
+
   },
-
-
 };
 
-export {Assets};
+export default Assets;

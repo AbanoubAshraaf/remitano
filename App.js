@@ -1,10 +1,10 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 
 import {AppContainer} from './App/Navigator';
 import firebase from 'firebase';
-import {StatusBar} from 'react-native';
-import {Assets} from './App/Assets/Assets';
+import {StatusBar, YellowBox} from 'react-native';
+import Assets from './App/Assets/Assets';
 
 var config = {
   databaseURL: 'https://remitanotask.firebaseio.com',
@@ -13,7 +13,11 @@ var config = {
 if (!firebase.apps.length) {
   firebase.initializeApp(config);
 }
+
 const App = () => {
+  useEffect(() => {
+    console.disableYellowBox = true;
+  }, []);
   return (
     <>
       <StatusBar

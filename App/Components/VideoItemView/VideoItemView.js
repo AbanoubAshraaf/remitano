@@ -1,12 +1,16 @@
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View} from 'react-native';
+import {Platform, StyleSheet, Text, View, Image} from 'react-native';
 import Video from 'react-native-video';
 import MediaControls, {PLAYER_STATES} from 'react-native-media-controls';
-import {TextInput, ScrollView} from 'react-native-gesture-handler';
+import {
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native-gesture-handler';
+import Assets from '../../Assets/Assets';
 
 class VideoItemView extends Component {
   videoPlayer;
-
   constructor(props) {
     super(props);
     this.state = {
@@ -16,19 +20,43 @@ class VideoItemView extends Component {
       isLoading: true,
       paused: false,
       mute: true,
-      playerState: PLAYER_STATES.PAUSED,
+      playerState: this.props.fullScreen
+        ? PLAYER_STATES.PLAYING
+        : PLAYER_STATES.PAUSED,
       screenType: 'stretch',
-      width: 150,
-      height: 150,
-      rendered: false,
+      width: this.props.fullScreen ? '99%' : 150,
+      height: this.props.fullScreen ? 200 : 150,
+      rendered: this.props.fullScreen ? true : false,
     };
   }
+
+  componentWillReceiveProps = nextProps => {
+    if (nextProps.item.url != this.props.item.url) {
+      this.setState({
+        paused: false,
+        playerState: PLAYER_STATES.PLAYING,
+        width: '99%',
+        height: 200,
+      });
+    }
+  };
 
   onSeek = seek => {
     this.videoPlayer.seek(seek);
   };
 
   onPaused = playerState => {
+    if (this.props.fullScreen) {
+      this.setState({
+        paused: !this.state.paused,
+        playerState,
+      });
+    } else {
+      this.props.setSelectedItem(this.props.item);
+    }
+  };
+
+  onPausedFirstTime = playerState => {
     this.setState({
       paused: !this.state.paused,
       playerState,
@@ -44,8 +72,8 @@ class VideoItemView extends Component {
   onProgress = data => {
     if (!this.state.rendered) {
       if (data.currentTime > 0.09) {
+        this.onPausedFirstTime(PLAYER_STATES.PAUSED);
         this.setState({mute: false, rendered: true});
-        this.onPaused(PLAYER_STATES.PAUSED);
       }
     } else {
       const {isLoading, playerState} = this.state;
@@ -53,8 +81,6 @@ class VideoItemView extends Component {
       if (!isLoading && playerState !== PLAYER_STATES.ENDED) {
         this.setState({currentTime: data.currentTime});
       }
-      console.log('dataTime', data.currentTime);
-      console.log('mute', this.state.mute);
     }
   };
 
@@ -80,8 +106,28 @@ class VideoItemView extends Component {
     }
   };
   renderToolbar = () => (
-    <View>
-      <Text> toolbar </Text>
+    <View style={styles.toolbarContainer}>
+      <Text
+        style={[
+          styles.toolbarText,
+          {fontSize: this.state.width == 150 ? 5 : 10},
+        ]}>
+        {this.props.item.title}
+      </Text>
+      <TouchableOpacity
+        onPress={() => this.props.setItemUrl(this.props.item.shareurl)}>
+        <Image
+          source={Assets.requires.share}
+          resizeMode="contain"
+          style={[
+            styles.shareICon,
+            {
+              width: this.state.width == 150 ? 12 : 25,
+              height: this.state.width == 150 ? 12 : 25,
+            },
+          ]}
+        />
+      </TouchableOpacity>
     </View>
   );
   onSeeking = currentTime => {
@@ -90,18 +136,20 @@ class VideoItemView extends Component {
 
   detailsView = fullScreen => {
     return (
-      <View style={{marginLeft: 10, flex: 1, marginTop: fullScreen ? 10 : 0}}>
+      <View
+        style={[styles.detailsViewContainer, {marginTop: fullScreen ? 10 : 0}]}>
         <Text style={styles.title}>{this.props.item.title}</Text>
         <Text style={styles.sharedby}>{this.props.item.sharedby}</Text>
-        <ScrollView style={{flex: 1, height: 100}}>
+        <ScrollView style={styles.descriptionContainer}>
           <Text style={styles.description}>{this.props.item.description}</Text>
         </ScrollView>
       </View>
     );
   };
+
   render() {
     return (
-      <>
+      <View>
         <View style={styles.container}>
           <View
             style={[
@@ -121,8 +169,7 @@ class VideoItemView extends Component {
               resizeMode={this.state.screenType}
               onFullScreen={this.state.isFullScreen}
               source={{
-                uri:
-                  'https://r5---sn-4g5ednsz.googlevideo.com/videoplayback?expire=1577233683&ei=s1gCXp7XM5nlkgaCoKLQDA&ip=2604%3A180%3A3%3A376%3A1041%3Ab55%3Adb8f%3A33bd&id=o-AM-yeTZhja_M1uqgSQmNEtuTc8y0IB0gUDsL4Iq0Xc-J&itag=18&source=youtube&requiressl=yes&mime=video%2Fmp4&gir=yes&clen=5301951&ratebypass=yes&dur=66.501&lmt=1558113611533227&fvip=5&fexp=23842630&c=WEB&txp=5531432&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cmime%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=ALgxI2wwRgIhAI0tSn_FrYZzUgOUH1ajeiJKUCx8U831sk9phQR-RPhUAiEAoA9Qt8Of5Ie1vjqLvmfBgQdQVDntqTQMLo68IGbD5oI%3D&redirect_counter=1&cm2rm=sn-n4ve676&req_id=d3f401a0f8f6a3ee&cms_redirect=yes&mip=41.44.48.176&mm=34&mn=sn-4g5ednsz&ms=ltu&mt=1577212049&mv=m&mvi=4&pl=19&lsparams=mip,mm,mn,ms,mv,mvi,pl&lsig=AHylml4wRQIgOXQz80MGz5Ok8e_wFjZ_YsRl49Mzl2vSPdBLyUdhIrgCIQCOa6EpKdzW8eYZzEgGChqs-un4POPsfqw6Y1gdEHotgg==',
+                uri: this.props.item.url,
               }}
               style={styles.mediaPlayer}
               volume={this.state.rendered ? 1 : 0}
@@ -144,7 +191,7 @@ class VideoItemView extends Component {
           {this.state.width == 150 && this.detailsView()}
         </View>
         {this.state.width != 150 && this.detailsView(true)}
-      </>
+      </View>
     );
   }
 }
@@ -172,7 +219,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 12,
-    marginTop: 10,
   },
   sharedby: {
     fontSize: 10,
@@ -181,6 +227,26 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 11,
     fontWeight: 'bold',
+  },
+  descriptionContainer: {
+    flex: 1,
+    height: 100,
+    marginTop: 10,
+    backgroundColor: Assets.Colors.white,
+  },
+  detailsViewContainer: {
+    marginLeft: 10,
+    flex: 1,
+  },
+  toolbarText: {color: '#ffffff', fontWeight: 'bold', flex: 1},
+  toolbarContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    alignItems: 'center',
+  },
+  shareICon: {
+    tintColor: '#ffffff',
   },
 });
 export default VideoItemView;
