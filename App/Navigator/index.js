@@ -5,7 +5,7 @@ import {createStackNavigator} from 'react-navigation-stack';
 import Home from '../Screens/Home';
 import LoginSignupScreen from '../Screens/LoginSignupScreen';
 
-import {Assets} from '../Assets/Assets';
+import Assets from '../Assets/Assets';
 
 const Home_StackNavigator = createStackNavigator(
   {
@@ -13,19 +13,41 @@ const Home_StackNavigator = createStackNavigator(
     Home: {
       screen: Home,
       navigationOptions: ({navigation}) => ({
-        title: 'Home',
+        title: 'Remitano',
         headerTitleContainerStyle: {
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           width: '100%',
+        },
+        headerStyle: {
+          backgroundColor: Assets.Colors.black,
+        },
+        headerTitleStyle: {
+          color: Assets.Colors.white,
+          fontStyle: 'italic',
         },
       }),
     },
     LoginSignup: {
       screen: LoginSignupScreen,
+      navigationOptions: ({navigation}) => ({
+        title: 'Remitano',
+        headerTitleContainerStyle: {
+          justifyContent: 'flex-start',
+          width: '100%',
+          backgroundColor: Assets.Colors.black,
+        },
+        headerStyle: {
+          backgroundColor: Assets.Colors.remitanoMainColor,
+        },
+        headerTitleStyle: {
+          color: Assets.Colors.white,
+          fontStyle: 'italic',
+        },
+      }),
     },
   },
   {
-    initialRouteName: 'LoginSignup',
+    initialRouteName: 'Home',
   },
 );
 

@@ -7,6 +7,7 @@ import {
   Image,
   FlatList,
   ActivityIndicator,
+  AsyncStorage,
 } from 'react-native';
 
 import Assets, {Width, Height} from '../../Assets/Assets';
@@ -20,6 +21,8 @@ const Home = props => {
   let [data, setData] = useState();
   let [itemUrl, setItemUrl] = useState();
   let [selectedItem, setSelectedItem] = useState();
+  let [userName, setUserName] = useState();
+  let [navigate, setNavigate] = useState(false);
 
   let [error, setError] = useState();
 
@@ -27,11 +30,20 @@ const Home = props => {
     readData(setData, setError, 'Videos');
   }, []);
   useEffect(() => {
+    retrieveData();
     if (data) {
       setSelectedItem(data[0]);
     }
   }, [data]);
-
+  const retrieveData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('email');
+      if (value !== null) {
+        console.log(value);
+        setUserName(value);
+      }
+    } catch (error) {}
+  };
   let renderItem = item => {
     return (
       <>
@@ -49,9 +61,26 @@ const Home = props => {
       </>
     );
   };
+
+  const LoginState = () => {
+    return userName ? (
+      <Text style={styles.userNameText}>  {userName}</Text>
+    ) : (
+      <TouchableOpacity
+        style={styles.loginTextContainer}
+        onPress={() => {
+          setNavigate(true);
+          props.navigation.navigate('LoginSignup');
+        }}>
+        <Text style={styles.loginText}> Login -></Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <>
       <View style={styles.container}>
+        {LoginState()}
         {data ? (
           <ScrollView showsVerticalScrollIndicator={false}>
             {selectedItem && (
@@ -59,6 +88,7 @@ const Home = props => {
                 item={selectedItem}
                 setItemUrl={setItemUrl}
                 fullScreen={true}
+                navigate={navigate}
               />
             )}
             <FlatList
@@ -87,7 +117,26 @@ const styles = StyleSheet.create({
     flex: 1,
     width: Assets.calcWidth(99),
     alignSelf: 'center',
-    marginTop: 10,
+    marginTop: 5,
+  },
+  userNameText: {
+    alignSelf: 'flex-end',
+    marginRight: 5,
+    color: Assets.Colors.remitanoMainColor,
+    marginBottom:5
+  },
+  loginTextContainer: {
+    backgroundColor: Assets.Colors.remitanoMainColor,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    color: Assets.Colors.white,
+    fontSize: 18,
+    width: '20%',
+    alignSelf: 'flex-end',
+  },
+  loginText: {
+    color: Assets.Colors.white,
   },
   title: {
     fontSize: 18,

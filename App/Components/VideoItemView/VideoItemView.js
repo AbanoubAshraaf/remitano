@@ -39,6 +39,11 @@ class VideoItemView extends Component {
         height: 200,
       });
     }
+    if (nextProps.navigate != this.props.navigate) {
+      this.setState({
+        paused: true,
+      });
+    }
   };
 
   onSeek = seek => {
